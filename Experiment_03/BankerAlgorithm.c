@@ -15,14 +15,14 @@ void output_resources(int max[REQUEST_NUM][RESOURCE_NUM],
     int need[REQUEST_NUM][RESOURCE_NUM], 
     int available[RESOURCE_NUM]);
 
+int intput_request_index();
+
+void input_request(int request[RESOURCE_NUM], int need[RESOURCE_NUM]);
+
 short change_resources(int request[RESOURCE_NUM], int available[RESOURCE_NUM], 
     int allocation[RESOURCE_NUM], int need[RESOURCE_NUM]);
 
 void output_unchange(int index);
-
-int intput_request_index();
-
-void input_request(int request[RESOURCE_NUM], int need[RESOURCE_NUM]);
 
 short check_safe(int available[RESOURCE_NUM], 
     int allocation[REQUEST_NUM][RESOURCE_NUM], 
@@ -55,6 +55,7 @@ int main()
     int request_index = 0;
     int ch;
 
+    CLEAR();
     printf("银行家算法开始：\n");
     
     init_resources(available, max, need);
@@ -85,9 +86,9 @@ int main()
             output_unchange(request_index);
         }
         
-        printf("是否还有Request？\n是输入1，否输入0：\n");
-        scanf("%d", &ch);
-        if (ch == '0') break;
+        printf("是否还有请求？[y/n]：\n");
+        scanf("%c", &ch);
+        if (ch == 'N' || ch == 'n' ) break;
     }
 
     return 1;
@@ -117,51 +118,84 @@ void output_resources(int max[REQUEST_NUM][RESOURCE_NUM],
     int need[REQUEST_NUM][RESOURCE_NUM], 
     int available[RESOURCE_NUM])
 {
-    printf("资源情况  Max        Allocation  Need        Available    \n");
-	printf("进程      A  B  C    A  B  C     A  B  C     A  B  C     \n");
+    CLEAR();
+    printf("Resources\t    Max  \t Allocation\t   Need  \t Available\n");
+	printf("Process  \t  A  B  C\t  A  B  C  \t  A  B  C\t  A  B 0\n");
 
     for (size_t i = 0; i < REQUEST_NUM; i++)
     {
-        printf("P%d", i);
+        printf("P%d       \t", i);
 
         for (size_t j = 0; j < RESOURCE_NUM; j++)
         {
-            if (j == 0)
-                printf("%9d", max[i][0]);
-            else
-                printf("%3d", max[i][j]);
+            printf("%3d", max[i][j]);
         }
 
-        for (size_t j = 0; j < RESOURCE_NUM; j++)
-        {
-            if (j == 0)
-                printf("%5d", allocation[i][0]);
-            else
-                printf("%3d", allocation[i][j]);
-        }
+        printf("\t");
 
         for (size_t j = 0; j < RESOURCE_NUM; j++)
         {
-            if (j == 0)
-                printf("%6d", need[i][0]);
-            else
-                printf("%3d", need[i][j]);
+            printf("%3d", allocation[i][j]);
+        }
+
+        printf("  \t");
+
+        for (size_t j = 0; j < RESOURCE_NUM; j++)
+        {
+            printf("%3d", need[i][j]);
         }
 
 		if (i == 0) 
         {
+            printf("\t");
+
             for (size_t j = 0; j < RESOURCE_NUM; j++)
             {
-                if (j == 0)
-                    printf("%6d", available[0]);
-                else
-                    printf("%3d", available[j]);
+                printf("%3d", available[j]);
             }
         }
 		printf("\n");
     }
 }
 
+// 获取请求进程号，并返回进程号
+int intput_request_index()
+{
+    if (REQUEST_NUM == 1) return 0;
+
+    size_t index = 0;
+    while (1)
+    {
+        printf("请输入请求进程号(0-%d)：", REQUEST_NUM - 1);
+        scanf("%d", &index);
+
+        if (index < REQUEST_NUM) return index;
+        else printf("请求进程号输入错误，请重新输入！\n");
+    }
+    return index;
+}
+
+// 输入请求的资源数，并对资源的请求量进行初步的判断
+void input_request(int request[RESOURCE_NUM], 
+    int need[RESOURCE_NUM])
+{
+    size_t i;
+    while (1)
+    {
+        printf("请按照A、B、C的顺序输入请求资源数：");
+        for (i = 0; i < RESOURCE_NUM; i++)
+        {
+            scanf("%d", &request[i]);
+            if (request[i] > need[i]) break;
+        }
+
+        if (i < RESOURCE_NUM) 
+            printf("请求资源数大于该进程需要的数目！请重新输入！\n");
+        else break;   
+    }
+}
+
+// 修改成功返回0，否则返回1
 short change_resources(int request[RESOURCE_NUM], int available[RESOURCE_NUM], 
     int allocation[RESOURCE_NUM], int need[RESOURCE_NUM])
 {
@@ -184,42 +218,10 @@ short change_resources(int request[RESOURCE_NUM], int available[RESOURCE_NUM],
 
 void output_unchange(int index)
 {
-    printf("请求资源数大于现有资源数，进程%d进入等待。", index);
+    printf("请求资源数大于现有资源数，进程%d进入等待。\n", index);
 }
 
-int intput_request_index()
-{
-    size_t index = 0;
-    while (1)
-    {
-        printf("请输入请求进程号(0-%d)：", REQUEST_NUM - 1);
-        scanf("%d", &index);
-
-        if (index < REQUEST_NUM) return index;
-        else printf("请求进程号输入错误，请重新输入！\n");
-    }
-    return index;
-}
-
-void input_request(int request[RESOURCE_NUM], 
-    int need[RESOURCE_NUM])
-{
-    size_t i;
-    while (1)
-    {
-        printf("请按照A、B、C的顺序输入请求资源数：");
-        for (i = 0; i < RESOURCE_NUM; i++)
-        {
-            scanf("%d", &request[i]);
-            if (request[i] > need[i]) break;
-        }
-
-        if (i < RESOURCE_NUM) 
-            printf("请求资源数大于该进程需要的数目！请重新输入！\n");
-        else break;   
-    }
-}
-
+// 进行银行家算法，对请求进行判断
 short check_safe(int available[RESOURCE_NUM], 
     int allocation[REQUEST_NUM][RESOURCE_NUM], 
     int need[REQUEST_NUM][RESOURCE_NUM], 
@@ -243,7 +245,7 @@ short check_safe(int available[RESOURCE_NUM],
                 if (k < RESOURCE_NUM) continue;
 
                 safe[index++] = j;
-                for ( k = 0; k < RESOURCE_NUM; k++)
+                for (k = 0; k < RESOURCE_NUM; k++)
                 {
                     works[j][k] = work[k];
                     work[k] += allocation[j][k];
@@ -254,12 +256,14 @@ short check_safe(int available[RESOURCE_NUM],
     return index < REQUEST_NUM;
 }
 
+// 经过银行家算法确认安全后将安全序列输出
 void output_safe(int safe[REQUEST_NUM], 
     int works[REQUEST_NUM][RESOURCE_NUM], 
     int allocation[REQUEST_NUM][RESOURCE_NUM], 
     int need[REQUEST_NUM][RESOURCE_NUM])
 {
-    printf("找到安全序列:");
+    CLEAR();
+    printf("找到安全序列: ");
     for (size_t i = 0; i < REQUEST_NUM; i++)
     {
         if (i == 0) printf("P%d", safe[i]);
@@ -268,45 +272,54 @@ void output_safe(int safe[REQUEST_NUM],
 
     printf("\n该序列的资源分配如下：\n");
 
-	printf("资源情况    Work      Need      Allocation   Work+Allocation    Finish\n");
-	printf("进程      A  B  C    A  B  C     A  B  C      A  B  C\n");
+    printf("Resources\t    Work \t   Need  \tAllocation\tWork+Allocation\tFinish\n");
+	printf("Process  \t  A  B  C\t  A  B  C\t  A  B  C \t  A  B  C      \t\n");
+
+	// printf("资源情况    Work      Need      Allocation   Work+Allocation    Finish\n");
+	// printf("进程      A  B  C    A  B  C     A  B  C      A  B  C\n");
 
     for (size_t i = 0; i < REQUEST_NUM; i++)
     {
         const size_t index = safe[i];
-        printf("P%d", index);
-        for (size_t j = 0; j < RESOURCE_NUM; j++)
-        {
-            if (j == 0) printf("%9d", works[index][0]);
-            else printf("%3d", works[index][j]);
-        }
+        printf("P%d       \t", index);
 
         for (size_t j = 0; j < RESOURCE_NUM; j++)
         {
-            if (j == 0) printf("%5d", need[index][0]);
-            else printf("%3d", need[index][j]);
+            printf("%3d", works[index][j]);
         }
+
+        printf("\t");
+
+        for (size_t j = 0; j < RESOURCE_NUM; j++)
+        {
+            printf("%3d", need[index][j]);
+        }
+
+        printf("\t");
         
         for (size_t j = 0; j < RESOURCE_NUM; j++)
         {
-            if (j == 0) printf("%5d", allocation[index][0]);
-            else printf("%3d", allocation[index][j]);
+            printf("%3d", allocation[index][j]);
         }
+
+        printf(" \t");
 
         for (size_t j = 0; j < RESOURCE_NUM; j++)
         {
-            if (j == 0) printf("%6d", works[index][0] + allocation[index][0]);
-            else printf("%3d", works[index][j] + allocation[index][j]);
+           printf("%3d", works[index][j] + allocation[index][j]);
         }
-        printf("true\n");
+
+        printf("      \ttrue\n");
     }
 }
 
+// 经过银行家算法确认不安全后将不安全的状态输出
 void output_unsafe()
 {
     printf("找不到安全序列，系统处于不安全状态。\n回滚修改！\n");
 }
 
+// 经过银行家算法确认不安全后状态回滚
 void roll_to_safe(int request[RESOURCE_NUM], 
     int available[RESOURCE_NUM], int allocation[RESOURCE_NUM])
 {
