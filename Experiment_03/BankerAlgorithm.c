@@ -85,10 +85,11 @@ int main()
         {
             output_unchange(request_index);
         }
+        while ((ch = getchar()) != EOF && ch != '\n');
         
         printf("是否还有请求？[y/n]：\n");
         scanf("%c", &ch);
-        if (ch == 'N' || ch == 'n' ) break;
+        if (ch == 'n' || ch == 'N') break;
     }
 
     return 1;
@@ -170,7 +171,12 @@ int intput_request_index()
         scanf("%d", &index);
 
         if (index < REQUEST_NUM) return index;
-        else printf("请求进程号输入错误，请重新输入！\n");
+        else 
+        {
+            printf("请求进程号输入错误，请重新输入！\n");
+            char ch;
+            while ((ch = getchar()) != EOF && ch != '\n');
+        }
     }
     return index;
 }
@@ -190,7 +196,11 @@ void input_request(int request[RESOURCE_NUM],
         }
 
         if (i < RESOURCE_NUM) 
+        {
             printf("请求资源数大于该进程需要的数目！请重新输入！\n");
+            char ch;
+            while ((ch = getchar()) != EOF && ch != '\n');
+        }
         else break;   
     }
 }
